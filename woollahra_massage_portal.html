@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Woollahra Massage Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for beautiful interactive analytics graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        neuBg: '#EBF0F6',
+                        neuBlue: '#4A90E2',
+                        neuDarkBlue: '#357ABD',
+                        neuDark: '#2D3748',
+                        neuLight: '#FFFFFF',
+                        neuShadowDark: '#C5CCD6',
+                        neuShadowLight: '#FFFFFF'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #EBF0F6;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Neumorphic Shadow Utilities */
+        .neu-flat {
+            background: #EBF0F6;
+            box-shadow: 8px 8px 16px #c5ccd6, -8px -8px 16px #ffffff;
+        }
+        .neu-inset {
+            background: #EBF0F6;
+            box-shadow: inset 4px 4px 8px #c5ccd6, inset -4px -4px 8px #ffffff;
+        }
+        .neu-btn {
+            background: #EBF0F6;
+            box-shadow: 5px 5px 10px #c5ccd6, -5px -5px 10px #ffffff;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .neu-btn:hover {
+            box-shadow: 2px 2px 5px #c5ccd6, -2px -2px 5px #ffffff;
+            transform: translateY(1px);
+        }
+        .neu-btn:active, .neu-btn-active {
+            box-shadow: inset 3px 3px 6px #c5ccd6, inset -3px -3px 6px #ffffff;
+            transform: translateY(2px);
+        }
+        .neu-btn-blue {
+            background: linear-gradient(145deg, #539df5, #4282cb);
+            box-shadow: 5px 5px 10px #c5ccd6, -5px -5px 10px #ffffff;
+            color: #ffffff;
+            transition: all 0.2s;
+        }
+        .neu-btn-blue:active {
+            background: #4282cb;
+            box-shadow: inset 3px 3px 6px #2e5d93, inset -3px -3px 6px #56a7ff;
+        }
+        /* Hide scrollbars for clean Neumorphic lists */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #EBF0F6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c5ccd6;
+            border-radius: 10px;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-8">
+
+    <!-- GLOBAL CUSTOM DIALOG / DIALOG MODALS (NO NATIVE ALERTS) -->
+    <div id="custom-modal-container" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="neu-flat p-6 rounded-3xl max-w-sm w-full text-center space-y-4 transform scale-95 transition-transform duration-200" id="custom-modal-box">
+            <h3 class="text-lg font-bold text-neuDark" id="custom-modal-title">Notification</h3>
+            <p class="text-sm text-gray-600" id="custom-modal-message">Notification message goes here.</p>
+            <div class="flex space-x-3 justify-center pt-2" id="custom-modal-actions">
+                <button onclick="closeCustomModal()" class="neu-btn px-6 py-2 rounded-xl text-sm font-semibold text-neuBlue">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 mt-6 flex-1 flex flex-col space-y-6 no-print">
+        
+        <!-- Header / Logo Panel -->
+        <header class="flex flex-col md:flex-row items-center justify-between p-6 rounded-3xl neu-flat gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="h-14 w-14 rounded-2xl bg-neuBlue flex items-center justify-center text-white font-bold text-2xl shadow-inner">
+                    W
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-neuDark">Woollahra Massage</h1>
+                    <p class="text-xs font-semibold text-neuBlue tracking-wide uppercase">Contractor Portal & Management Suite</p>
+                </div>
+            </div>
+            <!-- Global Tab Controller -->
+            <div class="flex space-x-2 bg-neuBg p-2 rounded-2xl neu-inset">
+                <button id="tab-btn-therapist" onclick="switchActiveTab('therapist')" class="px-5 py-2.5 rounded-xl text-sm font-bold text-neuBlue neu-btn-active">Therapist Login</button>
+                <button id="tab-btn-admin" onclick="switchActiveTab('admin')" class="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-500">Admin Console</button>
+            </div>
+        </header>
+
+        <!-- ==========================================
+             TAB 1: THERAPIST WORKSPACE (MOBILE FIRST)
+             ========================================== -->
+        <section id="tab-content-therapist" class="space-y-6">
+            
+            <!-- Login State Box -->
+            <div id="therapist-login-view" class="max-w-md mx-auto p-8 rounded-3xl neu-flat space-y-6 my-10">
+                <div class="text-center">
+                    <h2 class="text-xl font-bold text-neuDark">Therapist Portal</h2>
+                    <p class="text-xs text-gray-500 mt-1">Please enter your individual secure passcode</p>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Select Name</label>
+                        <select id="login-therapist-select" class="w-full p-4 rounded-2xl neu-inset text-sm font-semibold text-neuDark focus:outline-none">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Enter 4-Digit PIN</label>
+                        <input type="password" id="login-therapist-pin" maxlength="4" placeholder="••••" class="w-full p-4 rounded-2xl neu-inset text-center text-xl font-bold tracking-widest text-neuDark focus:outline-none">
+                    </div>
+                    <button onclick="attemptTherapistLogin()" class="w-full py-4 rounded-2xl neu-btn-blue font-bold tracking-wide">Secure Sign In</button>
+                </div>
+            </div>
+
+            <!-- Logged-in Portal Dashboard -->
+            <div id="therapist-authenticated-view" class="hidden space-y-6">
+                <!-- Welcome Banner -->
+                <div class="p-6 rounded-3xl neu-flat flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="h-12 w-12 rounded-xl bg-neuBlue/10 flex items-center justify-center text-neuBlue font-bold text-lg">
+                            👋
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-neuDark" id="display-therapist-name">Hello, BO</h2>
+                            <p class="text-xs text-gray-500">Commission Rate: <span id="display-commission-percent">50</span>% | ABN: <span id="display-therapist-abn">Not Set</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="openProfileSettingsModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold neu-btn text-gray-600">Edit Profile</button>
+                        <button onclick="logoutTherapist()" class="px-4 py-2.5 rounded-xl text-xs font-bold neu-btn text-rose-600">Sign Out</button>
+                    </div>
+                </div>
+
+                <!-- Shift Status Check -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Left: Shift Action Tracker -->
+                    <div class="p-6 rounded-3xl neu-flat space-y-4">
+                        <h3 class="text-base font-bold text-neuDark">Attendance Control</h3>
+                        <p class="text-xs text-gray-500">You must clock in to begin recording client sessions for today. Your guarantees ($150 Weekday / $180 Weekend) are calculated automatically.</p>
+                        
+                        <div id="clock-in-actions" class="pt-2">
+                            <button onclick="clockInShift()" class="w-full py-4 rounded-2xl neu-btn-blue font-bold flex items-center justify-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span>Clock In Shift</span>
+                            </button>
+                        </div>
+
+                        <div id="clock-out-actions" class="hidden space-y-4">
+                            <div class="p-4 rounded-2xl neu-inset space-y-3 text-xs font-semibold text-gray-600">
+                                <div class="flex justify-between"><span>Date:</span><span id="shift-meta-date" class="text-neuDark">01-01-2026</span></div>
+                                <div class="flex justify-between"><span>Status:</span><span class="text-emerald-600">In Progress</span></div>
+                                <div class="flex justify-between"><span>Treatments Logged:</span><span id="shift-meta-count" class="text-neuDark">0</span></div>
+                                <hr class="border-gray-200">
+                                <div class="flex justify-between"><span>Commission:</span><span id="shift-meta-comm" class="text-neuDark">$0.00</span></div>
+                                <div class="flex justify-between text-neuBlue"><span>Top-Up Earned:</span><span id="shift-meta-topup" class="font-bold">$0.00</span></div>
+                                <div class="flex justify-between text-emerald-600"><span>Tips Collected:</span><span id="shift-meta-tips" class="font-bold">$0.00</span></div>
+                                <hr class="border-gray-200">
+                                <div class="flex justify-between text-base font-bold text-neuDark"><span>Payout:</span><span id="shift-meta-payout">$0.00</span></div>
+                            </div>
+                            <button onclick="clockOutShift()" class="w-full py-4 rounded-2xl neu-btn text-rose-600 font-bold flex items-center justify-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                <span>Clock Out & End Day</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Performance Dashboard Analytics -->
+                    <div class="md:col-span-2 p-6 rounded-3xl neu-flat space-y-4">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                            <h3 class="text-base font-bold text-neuDark">Your Performance & Analytics</h3>
+                            <div class="flex bg-neuBg p-1 rounded-xl neu-inset text-xs font-bold text-gray-500">
+                                <button onclick="setTherapistFilter('today')" id="t-filter-today" class="px-3 py-1.5 rounded-lg neu-btn-active text-neuBlue">Today</button>
+                                <button onclick="setTherapistFilter('week')" id="t-filter-week" class="px-3 py-1.5 rounded-lg">Week</button>
+                                <button onclick="setTherapistFilter('month')" id="t-filter-month" class="px-3 py-1.5 rounded-lg">Month</button>
+                            </div>
+                        </div>
+
+                        <!-- Statistics Grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="p-3 rounded-2xl neu-inset text-center">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Service Sales</span>
+                                <span id="t-stat-sales" class="text-base font-bold text-neuDark mt-1 block">$0.00</span>
+                            </div>
+                            <div class="p-3 rounded-2xl neu-inset text-center">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Commissions</span>
+                                <span id="t-stat-comm" class="text-base font-bold text-neuDark mt-1 block">$0.00</span>
+                            </div>
+                            <div class="p-3 rounded-2xl neu-inset text-center">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Top-Ups</span>
+                                <span id="t-stat-topups" class="text-base font-bold text-neuBlue mt-1 block">$0.00</span>
+                            </div>
+                            <div class="p-3 rounded-2xl neu-inset text-center">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Payout Total</span>
+                                <span id="t-stat-payout" class="text-base font-bold text-emerald-600 mt-1 block">$0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Chart Widget -->
+                        <div class="h-44 w-full relative">
+                            <canvas id="therapistEarningChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Treatment Session Logger -->
+                <div id="session-logger-box" class="p-6 rounded-3xl neu-flat space-y-4">
+                    <h3 class="text-base font-bold text-neuDark">Log Completed Service</h3>
+                    <form id="session-log-form" onsubmit="handleSessionLogging(event)" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        
+                        <!-- Core Metrics -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Select Treatment</label>
+                                <select id="form-service" onchange="calculateFormPricesLive()" class="w-full p-3.5 rounded-2xl neu-inset text-sm text-neuDark focus:outline-none" required>
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+
+                            <!-- Add-Ons Section -->
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Add-Ons</label>
+                                <div id="addon-list-container" class="space-y-2">
+                                    <!-- Dynamic Add On buttons are injected here -->
+                                </div>
+                                <button type="button" onclick="addNewAddonSelector()" class="mt-2 text-xs font-bold text-neuBlue hover:text-neuDarkBlue flex items-center space-x-1">
+                                    <span>+ Add On Service</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Payment & Financial Adjustments -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Primary Payment Type</label>
+                                <select id="form-payment-1" onchange="handlePaymentType1Selection()" class="w-full p-3.5 rounded-2xl neu-inset text-sm text-neuDark focus:outline-none" required>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Card">Card</option>
+                                    <option value="Tyro">Tyro</option>
+                                    <option value="Voucher">Voucher</option>
+                                    <option value="HealthPoint">HealthPoint</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Prepaid">Prepaid</option>
+                                    <option value="Incomplete">Incomplete</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <!-- Conditional Voucher Field -->
+                            <div id="voucher-field-box" class="hidden">
+                                <label class="block text-xs font-bold text-amber-600 mb-1.5 uppercase">Required Voucher Number</label>
+                                <input type="text" id="form-voucher-num" placeholder="Enter voucher code/serial" class="w-full p-3.5 rounded-2xl neu-inset text-sm text-neuDark focus:outline-none">
+                            </div>
+
+                            <!-- Split Payment Switcher -->
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-xs font-bold text-gray-500 uppercase">Split Payment?</label>
+                                    <input type="checkbox" id="form-split-check" onchange="toggleSplitInputs()" class="rounded border-gray-300 text-neuBlue">
+                                </div>
+                                <div id="split-inputs" class="hidden grid grid-cols-2 gap-2 mt-2">
+                                    <select id="form-payment-2" class="w-full p-3 rounded-2xl neu-inset text-xs text-neuDark focus:outline-none">
+                                        <option value="Cash">Cash</option>
+                                        <option value="Card">Card</option>
+                                        <option value="Tyro">Tyro</option>
+                                        <option value="Voucher">Voucher</option>
+                                        <option value="HealthPoint">HealthPoint</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Prepaid">Prepaid</option>
+                                        <option value="Incomplete">Incomplete</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <input type="text" pattern="[0-9.]*" id="form-amount-2" placeholder="Amt ($)" class="w-full p-3 rounded-2xl neu-inset text-xs text-neuDark focus:outline-none">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tips & Invoicing -->
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Tip Amt ($)</label>
+                                    <!-- Numeric values only, no standard spin button arrows -->
+                                    <input type="text" pattern="[0-9.]*" id="form-tip-amount" placeholder="0.00" class="w-full p-3.5 rounded-2xl neu-inset text-sm text-neuDark focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Tip Paid Via</label>
+                                    <select id="form-tip-type" class="w-full p-3.5 rounded-2xl neu-inset text-sm text-neuDark focus:outline-none">
+                                        <option value="Cash">Cash</option>
+                                        <option value="Card">Card</option>
+                                        <option value="Tyro">Tyro</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Live Estimation</label>
+                                <div class="p-3.5 rounded-2xl neu-inset flex justify-between text-xs font-bold text-gray-600">
+                                    <span>Total Price: <span id="live-est-total" class="text-neuDark">$0.00</span></span>
+                                    <span>My Share: <span id="live-est-share" class="text-neuBlue">$0.00</span></span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full py-4 rounded-2xl neu-btn-blue font-bold shadow-md">Register Completed Session</button>
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- Session History Grid -->
+                <div class="p-6 rounded-3xl neu-flat space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-base font-bold text-neuDark">Logged Treatments (Today)</h3>
+                        <button onclick="triggerInvoiceSubmission()" class="px-5 py-2 rounded-xl text-xs font-bold neu-btn-blue">Send Tax Invoice to Company</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-gray-500 font-semibold uppercase">
+                                    <th class="py-3">Service</th>
+                                    <th class="py-3">Add-Ons</th>
+                                    <th class="py-3 text-right">Revenue</th>
+                                    <th class="py-3 text-center">Payment Details</th>
+                                    <th class="py-3 text-right">My Share</th>
+                                    <th class="py-3 text-right">Tip Received</th>
+                                    <th class="py-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="therapist-sessions-table-rows" class="divide-y divide-gray-100 text-gray-700">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ==========================================
+             TAB 2: ADMIN CONSOLE (RICH REPORTING)
+             ========================================== -->
+        <section id="tab-content-admin" class="hidden space-y-6">
+            
+            <!-- Admin Authorization Shield -->
+            <div id="admin-auth-view" class="max-w-md mx-auto p-8 rounded-3xl neu-flat space-y-6 my-10">
+                <div class="text-center">
+                    <h2 class="text-xl font-bold text-neuDark">Administrative Shield</h2>
+                    <p class="text-xs text-gray-500 mt-1">Please enter your master controller credentials</p>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Passcode</label>
+                        <input type="password" id="admin-pass-key" placeholder="••••" class="w-full p-4 rounded-2xl neu-inset text-center text-xl font-bold tracking-widest focus:outline-none">
+                    </div>
+                    <button onclick="attemptAdminAccess()" class="w-full py-4 rounded-2xl neu-btn-blue font-bold tracking-wide">Authenticate Access</button>
+                </div>
+            </div>
+
+            <!-- Fully Unlocked Dashboard Interface -->
+            <div id="admin-portal-view" class="hidden space-y-6">
+                
+                <!-- Quick Controls Block -->
+                <div class="p-6 rounded-3xl neu-flat flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-neuDark">Console Overview & Audit Suite</h2>
+                        <p class="text-xs text-gray-500 mt-1">Configure dates, monitor dynamic summaries, and control service settings</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="openTherapistManagerModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold neu-btn text-neuBlue">Therapist Settings</button>
+                        <button onclick="openServiceManagerModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold neu-btn text-neuBlue">Service Catalogue</button>
+                        <button onclick="lockAdminWorkspace()" class="px-4 py-2.5 rounded-xl text-xs font-bold neu-btn text-rose-600">Lock Console</button>
+                    </div>
+                </div>
+
+                <!-- Custom Range Filtering -->
+                <div class="p-6 rounded-3xl neu-flat grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Date Filter</label>
+                        <select id="admin-date-preset" onchange="handlePresetDateChange()" class="w-full p-3 rounded-xl neu-inset text-xs font-semibold text-neuDark focus:outline-none">
+                            <option value="custom">Custom Filter Range</option>
+                            <option value="today">Today</option>
+                            <option value="week" selected>This Week (Monday - Sunday)</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Start Date</label>
+                        <input type="date" id="admin-date-start" onchange="triggerAdminDataReload()" class="w-full p-3 rounded-xl neu-inset text-xs text-neuDark focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">End Date</label>
+                        <input type="date" id="admin-date-end" onchange="triggerAdminDataReload()" class="w-full p-3 rounded-xl neu-inset text-xs text-neuDark focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Focus Therapist</label>
+                        <select id="admin-focus-therapist" onchange="triggerAdminDataReload()" class="w-full p-3 rounded-xl neu-inset text-xs font-semibold text-neuDark focus:outline-none">
+                            <option value="ALL">All Active Therapists</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Live Metrics Summary Panel -->
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div class="p-5 rounded-2xl neu-flat text-center">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Gross Sales</span>
+                        <span id="admin-stat-sales" class="text-xl font-bold text-neuDark block mt-1">$0.00</span>
+                    </div>
+                    <div class="p-5 rounded-2xl neu-flat text-center">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Base Commissions</span>
+                        <span id="admin-stat-comm" class="text-xl font-bold text-neuDark block mt-1">$0.00</span>
+                    </div>
+                    <div class="p-5 rounded-2xl neu-flat text-center">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Guarantees/Top-ups</span>
+                        <span id="admin-stat-topups" class="text-xl font-bold text-neuBlue block mt-1">$0.00</span>
+                    </div>
+                    <div class="p-5 rounded-2xl neu-flat text-center">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Allocated Tips</span>
+                        <span id="admin-stat-tips" class="text-xl font-bold text-emerald-600 block mt-1">$0.00</span>
+                    </div>
+                    <div class="p-5 rounded-2xl neu-flat text-center col-span-2 md:col-span-1">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Grand Payout Total</span>
+                        <span id="admin-stat-payout" class="text-2xl font-black text-neuBlue block mt-0.5">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Advanced Analytics Visualized (Bar Graphs) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Graph 1: Revenue vs Commission -->
+                    <div class="p-6 rounded-3xl neu-flat space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-neuDark">Income Distribution Chart</h3>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Gross vs Payouts</span>
+                        </div>
+                        <div class="h-64 relative w-full">
+                            <canvas id="adminRevenueChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Graph 2: Payments Breakdown -->
+                    <div class="p-6 rounded-3xl neu-flat space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-neuDark">Preferred Client Payment Methods</h3>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Total Counts</span>
+                        </div>
+                        <div class="h-64 relative w-full">
+                            <canvas id="adminPaymentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shift Management Table -->
+                <div class="p-6 rounded-3xl neu-flat space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-base font-bold text-neuDark">Active & Past Attendance Registers</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="exportAdminShiftsToCSV()" class="px-4 py-2 rounded-xl text-xs font-bold neu-btn text-gray-600">Export Shifts CSV</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-gray-500 font-semibold uppercase">
+                                    <th class="py-3">Date</th>
+                                    <th class="py-3">Staff Name</th>
+                                    <th class="py-3">Clock In</th>
+                                    <th class="py-3">Clock Out</th>
+                                    <th class="py-3 text-right">Commissions</th>
+                                    <th class="py-3 text-right">Top-Up Applied</th>
+                                    <th class="py-3 text-right">Tips</th>
+                                    <th class="py-3 text-right">Payouts Sum</th>
+                                    <th class="py-3 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-shifts-table-rows" class="divide-y divide-gray-100 text-gray-700">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Voucher Reporting Suite Module -->
+                <div class="p-6 rounded-3xl neu-flat space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                        <div>
+                            <h3 class="text-base font-bold text-neuDark">Voucher Transaction Logs & Audit</h3>
+                            <p class="text-[11px] text-gray-500">Trace registered coupons, validation details, and splits</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="exportAdminVouchersToCSV()" class="px-4 py-2 rounded-xl text-xs font-bold neu-btn text-gray-600">Export Voucher Registry</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <div class="p-3.5 rounded-2xl neu-inset text-center">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Total Voucher Count</span>
+                            <span id="voucher-audit-count" class="text-lg font-bold text-neuDark mt-1 block">0</span>
+                        </div>
+                        <div class="p-3.5 rounded-2xl neu-inset text-center">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Voucher Gross Income</span>
+                            <span id="voucher-audit-volume" class="text-lg font-bold text-neuDark mt-1 block">$0.00</span>
+                        </div>
+                        <div class="p-3.5 rounded-2xl neu-inset text-center col-span-2 sm:col-span-1">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Outstanding Vouchers</span>
+                            <span id="voucher-outstanding-count" class="text-lg font-bold text-amber-600 mt-1 block">0</span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-gray-500 font-semibold uppercase">
+                                    <th class="py-3">Date</th>
+                                    <th class="py-3">Staff Name</th>
+                                    <th class="py-3">Voucher Serial Code</th>
+                                    <th class="py-3 text-right">Service Total</th>
+                                    <th class="py-3 text-right">Commission Share</th>
+                                    <th class="py-3 text-right">Tip Amount</th>
+                                    <th class="py-3 text-center">Action Trail</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-vouchers-table-rows" class="divide-y divide-gray-100 text-gray-700">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- ==========================================
+         PRINT PREVIEW CONTAINER (ONLY FOR PRINTING)
+         ========================================== -->
+    <section id="tax-invoice-printing-view" class="hidden print-only bg-white p-10 max-w-3xl mx-auto text-black">
+        <div id="invoice-compile-target" class="space-y-6"></div>
+    </section>
+
+    <!-- POP-UP MODAL: PROFILE SETTINGS -->
+    <div id="modal-profile-settings" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
+        <div class="neu-flat p-6 rounded-3xl max-w-md w-full space-y-4">
+            <h3 class="text-base font-bold text-neuDark">Edit Profile Details</h3>
+            <p class="text-xs text-gray-500">Your profile information is used to automatically generate accurate contractor tax invoices.</p>
+            <div class="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto p-1">
+                <div class="col-span-2">
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Full Contractor Legal Name</label>
+                    <input type="text" id="prof-fullname" class="w-full p-2.5 rounded-xl neu-inset text-xs text-neuDark focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Australian ABN</label>
+                    <input type="text" id="prof-abn" class="w-full p-2.5 rounded-xl neu-inset text-xs text-neuDark focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Contact Phone</label>
+                    <input type="text" id="prof-mobile" class="w-full p-2.5 rounded-xl neu-inset text-xs text-neuDark focus:outline-none">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Personal Email</label>
+                    <input type="email" id="prof-email" class="w-full p-2.5 rounded-xl neu-inset text-xs text-neuDark focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Bank Name</label>
+                    <input type="text" id="prof-bank" class="w-full p-2.5 rounded-xl neu-inset text-xs text-neuDark focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Account Holder</label>
+                    <input type="text" id="prof-holder" class="w-full p-2.5 rounded-xl neu-inset text-xs text-neuDark focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">BSB Number</label>
+                    <input type="text" placeholder="000-000" id="prof-bsb" class="w-full p-2.5 rounded-xl neu-inset text-xs text-neuDark focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Account Number</label>
+                    <input type="text" id="prof-acc" class="w-full p-2.5 rounded-xl neu-inset text-xs text-neuDark focus:outline-none">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeProfileSettingsModal()" class="px-4 py-2 rounded-xl text-xs font-bold neu-btn text-gray-600">Cancel</button>
+                <button onclick="saveProfileSettings()" class="px-5 py-2 rounded-xl text-xs font-bold neu-btn-blue">Save Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POP-UP MODAL: THERAPIST MANAGER (ADMIN) -->
+    <div id="modal-therapist-manager" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
+        <div class="neu-flat p-6 rounded-3xl max-w-lg w-full space-y-4">
+            <h3 class="text-base font-bold text-neuDark">Staff Roster Settings</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Add form -->
+                <div class="p-4 rounded-2xl neu-inset space-y-3">
+                    <span class="text-xs font-bold text-gray-600 uppercase block">Add New Team Member</span>
+                    <input type="text" id="add-t-name" placeholder="Name" class="w-full p-2 rounded-xl bg-white/60 text-xs text-neuDark focus:outline-none">
+                    <input type="text" id="add-t-pin" placeholder="PIN" maxlength="4" class="w-full p-2 rounded-xl bg-white/60 text-xs text-neuDark focus:outline-none">
+                    <input type="text" id="add-t-abn" placeholder="ABN" class="w-full p-2 rounded-xl bg-white/60 text-xs text-neuDark focus:outline-none">
+                    <input type="text" id="add-t-email" placeholder="Email" class="w-full p-2 rounded-xl bg-white/60 text-xs text-neuDark focus:outline-none">
+                    <input type="number" step="0.01" id="add-t-rate" placeholder="Comm. Rate (e.g. 0.45)" class="w-full p-2 rounded-xl bg-white/60 text-xs text-neuDark focus:outline-none">
+                    <button onclick="createNewTherapistProfile()" class="w-full py-2 rounded-xl neu-btn-blue text-xs font-bold">Add Contractor</button>
+                </div>
+                
+                <!-- Listing -->
+                <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    <span class="text-xs font-bold text-gray-600 uppercase block">Staff Registry</span>
+                    <div id="admin-therapists-mini-list" class="space-y-2">
+                        <!-- Dynamic list -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="closeTherapistManagerModal()" class="px-5 py-2 rounded-xl text-xs font-bold neu-btn text-gray-600">Close Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POP-UP MODAL: SERVICE CATALOG MANAGER (ADMIN) -->
+    <div id="modal-service-manager" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
+        <div class="neu-flat p-6 rounded-3xl max-w-lg w-full space-y-4">
+            <h3 class="text-base font-bold text-neuDark">Treatment & Pricing Catalogue</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Add form -->
+                <div class="p-4 rounded-2xl neu-inset space-y-3">
+                    <span class="text-xs font-bold text-gray-600 uppercase block">Add Service Option</span>
+                    <input type="text" id="add-s-id" placeholder="Service ID (e.g. TH090)" class="w-full p-2 rounded-xl bg-white/60 text-xs text-neuDark focus:outline-none">
+                    <input type="text" id="add-s-name" placeholder="Full Title Name" class="w-full p-2 rounded-xl bg-white/60 text-xs text-neuDark focus:outline-none">
+                    <input type="number" step="1" id="add-s-price" placeholder="RRP Base Price ($)" class="w-full p-2 rounded-xl bg-white/60 text-xs text-neuDark focus:outline-none">
+                    <button onclick="createNewServiceOption()" class="w-full py-2 rounded-xl neu-btn-blue text-xs font-bold">Add Service Option</button>
+                </div>
+                
+                <!-- Listing -->
+                <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    <span class="text-xs font-bold text-gray-600 uppercase block">Available Treatments</span>
+                    <div id="admin-services-mini-list" class="space-y-2">
+                        <!-- Dynamic list -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="closeServiceManagerModal()" class="px-5 py-2 rounded-xl text-xs font-bold neu-btn text-gray-600">Close Settings</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+         SCRIPT STATE MANAGEMENT & CORE FLOW
+         ========================================== -->
+    <script>
+        // Preset default database derived from AppSheet files (Encrypted storage simulation fallback)
+        const baseStaffProfiles = [
+            { Therapist_ID: "WM001", Name: "BO", Pin: "1111", ABN: "65 654 321 098", Email: "Bo.Tharadol@gmail.com", Bank_Name: "CBA", Account_Name: "B. Tharadol", BSB: "062000", Account_Number: "10111222", Mobile: "0412345678" },
+            { Therapist_ID: "WM002", Name: "JO", Pin: "2222", ABN: "", Email: "jo.therapist@gmail.com", Bank_Name: "NAB", Account_Name: "J. Doe", BSB: "082121", Account_Number: "34343434", Mobile: "0498765432" },
+            { Therapist_ID: "WM003", Name: "SANDY", Pin: "3333", ABN: "", Email: "" },
+            { Therapist_ID: "WM004", Name: "NICK", Pin: "4444", ABN: "", Email: "" },
+            { Therapist_ID: "WM005", Name: "LEK", Pin: "5555", ABN: "", Email: "" },
+            { Therapist_ID: "WM006", Name: "KRISS", Pin: "6666", ABN: "", Email: "" },
+            { Therapist_ID: "WM007", Name: "LAVA", Pin: "7777", ABN: "", Email: "" },
+            { Therapist_ID: "WM008", Name: "ANNA", Pin: "8888", ABN: "", Email: "" },
+            { Therapist_ID: "WM009", Name: "LEE", Pin: "9999", ABN: "", Email: "" },
+            { Therapist_ID: "WM010", Name: "MINNIE", Pin: "1010", ABN: "", Email: "" },
+            { Therapist_ID: "WM011", Name: "POKKIE", Pin: "1234", ABN: "", Email: "" }
+        ];
+
+        const baseStaffRates = [
+            { Therapist_Rate_ID: "R001", Therapist_ID: "WM001", Weekday_Guarantee: 150.00, Weekend_Guarantee: 180.00, Commission_Rate: 0.50 },
+            { Therapist_Rate_ID: "R002", Therapist_ID: "WM002", Weekday_Guarantee: 150.00, Weekend_Guarantee: 180.00, Commission_Rate: 0.45 },
+            { Therapist_Rate_ID: "R003", Therapist_ID: "WM003", Weekday_Guarantee: 150.00, Weekend_Guarantee: 180.00, Commission_Rate: 0.45 },
+            { Therapist_Rate_ID: "R004", Therapist_ID: "WM004", Weekday_Guarantee: 150.00, Weekend_Guarantee: 180.00, Commission_Rate: 0.45 },
+            { Therapist_Rate_ID: "R005", Therapist_ID: "WM005", Weekday_Guarantee: 150.00, Weekend_Guarantee: 180.00, Commission_Rate: 0.45 },
+            { Therapist_Rate_ID: "R006", Therapist_ID: "WM006", Weekday_Guarantee: 150.00, Weekend_Guarantee: 180.00, Commission_Rate: 0.45 },
+            { Therapist_Rate_ID: "R007", Therapist_ID: "WM007", Weekday_Guarantee: 150.00, Weekend_Guarantee: 180.00, Commission_Rate: 0.45 },
+            { Therapist_Rate_ID: "R008", Therapist_ID: "WM008", Weekday_Guarantee: 150.00, Weekend_Guarantee: 180.00, Commission_Rate: 0.45 },
+            { Therapist_Rate_ID: "R009", Therapist_ID: "WM009", Weekday_Guarantee: 150.00, Weekend_Guarantee: 180.00, Commission_Rate: 0.45 },
+            { Therapist_Rate_ID: "R010", Therapist_ID: "WM010", Weekday_Guarantee: 150.00, Weekend_Guarantee: 180.00, Commission_Rate: 0.45 },
+            { Therapist_Rate_ID: "R011", Therapist_ID: "WM011", Weekday_Guarantee: 150.00, Weekend_Guarantee: 180.00, Commission_Rate: 0.45 }
+        ];
+
+        const baseServices = [
+            { Service_ID: "RM030", Service_Name: "30 Min Remedial", Price: 70.00 },
+            { Service_ID: "RM045", Service_Name: "45 Min Remedial", Price: 90.00 },
+            { Service_ID: "RM060", Service_Name: "60 Min Remedial", Price: 110.00 },
+            { Service_ID: "RM075", Service_Name: "75 Min Remedial", Price: 130.00 },
+            { Service_ID: "RM090", Service_Name: "90 Min Remedial", Price: 150.00 },
+            { Service_ID: "RM105", Service_Name: "105 Min Remedial", Price: 170.00 },
+            { Service_ID: "RM120", Service_Name: "120 Min Remedial", Price: 200.00 },
+            { Service_ID: "TH030", Service_Name: "30 Min Massage", Price: 65.00 },
+            { Service_ID: "TH045", Service_Name: "45 Min Massage", Price: 85.00 },
+            { Service_ID: "TH060", Service_Name: "60 Min Massage", Price: 105.00 },
+            { Service_ID: "TH075", Service_Name: "75 Min Massage", Price: 125.00 },
+            { Service_ID: "TH090", Service_Name: "90 Min Massage", Price: 145.00 },
+            { Service_ID: "TH105", Service_Name: "105 Min Massage", Price: 165.00 },
+            { Service_ID: "TH120", Service_Name: "120 Min Massage", Price: 195.00 }
+        ];
+
+        const baseAddons = [
+            { AddOn_ID: "A010", Name: "Add on $10", Price: 10.00 },
+            { AddOn_ID: "A020", Name: "Add On $20", Price: 20.00 }
+        ];
+
+        // Global Storage System
+        let state = {
+            therapists: JSON.parse(localStorage.getItem('wm_p_therapists')) || baseStaffProfiles,
+            rates: JSON.parse(localStorage.getItem('wm_p_rates')) || baseStaffRates,
+            services: JSON.parse(localStorage.getItem('wm_p_services')) || baseServices,
+            addons: baseAddons,
+            shifts: JSON.parse(localStorage.getItem('wm_p_shifts')) || [],
+            sessions: JSON.parse(localStorage.getItem('wm_p_sessions')) || []
+        };
+
+        // Active State Objects
+        let currentTherapist = null;
+        let activeShift = null;
+        let adminAuthorized = false;
+        let therapistFilterType = 'week'; // default
+
+        // Session Form Addons Control
+        let selectedAddonsList = [];
+
+        // Chart References
+        let tEarningChartRef = null;
+        let admRevenueChartRef = null;
+        let admPaymentChartRef = null;
+
+        // Custom alert and confirm callback states
+        let customModalConfirmCallback = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            saveStateToStorage();
+            prefillStaticInputs();
+            initPresetDateSelectors();
+        });
+
+        function saveStateToStorage() {
+            localStorage.setItem('wm_p_therapists', JSON.stringify(state.therapists));
+            localStorage.setItem('wm_p_rates', JSON.stringify(state.rates));
+            localStorage.setItem('wm_p_services', JSON.stringify(state.services));
+            localStorage.setItem('wm_p_shifts', JSON.stringify(state.shifts));
+            localStorage.setItem('wm_p_sessions', JSON.stringify(state.sessions));
+        }
+
+        /* ----------------------------------------------------
+           CUSTOM DIALOGS & ALERTS MODAL ENGINE (NO WINDOW ALERTS)
+           ---------------------------------------------------- */
+        function openCustomModal(title, msg, isConfirm = false, onConfirm = null) {
+            document.getElementById('custom-modal-title').innerText = title;
+            document.getElementById('custom-modal-message').innerText = msg;
+            
+            const actionsBox = document.getElementById('custom-modal-actions');
+            actionsBox.innerHTML = "";
+
+            if (isConfirm) {
+                // Add Cancel Button
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = "neu-btn px-5 py-2 rounded-xl text-xs font-semibold text-gray-500";
+                cancelBtn.innerText = "Cancel";
+                cancelBtn.onclick = () => { closeCustomModal(); };
+                actionsBox.appendChild(cancelBtn);
+
+                // Add Proceed Button
+                const okBtn = document.createElement('button');
+                okBtn.className = "neu-btn-blue px-5 py-2 rounded-xl text-xs font-semibold";
+                okBtn.innerText = "Proceed";
+                okBtn.onclick = () => {
+                    closeCustomModal();
+                    if (onConfirm) onConfirm();
+                };
+                actionsBox.appendChild(okBtn);
+            } else {
+                const okBtn = document.createElement('button');
+                okBtn.className = "neu-btn-blue px-6 py-2 rounded-xl text-sm font-semibold";
+                okBtn.innerText = "OK";
+                okBtn.onclick = () => { closeCustomModal(); };
+                actionsBox.appendChild(okBtn);
+            }
+
+            const modal = document.getElementById('custom-modal-container');
+            const box = document.getElementById('custom-modal-box');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeCustomModal() {
+            const modal = document.getElementById('custom-modal-container');
+            const box = document.getElementById('custom-modal-box');
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 150);
+        }
+
+        /* ----------------------------------------------------
+           DATE CALCULATIONS & PRESET MANAGEMENT
+           ---------------------------------------------------- */
+        function initPresetDateSelectors() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const formattedToday = `${yyyy}-${mm}-${dd}`;
+
+            // Set Admin dates to This Week initially
+            const range = getPresetDateRange('week');
+            document.getElementById('admin-date-start').value = range.start;
+            document.getElementById('admin-date-end').value = range.end;
+        }
+
+        function getPresetDateRange(preset) {
+            const today = new Date();
+            let start = "";
+            let end = "";
+
+            if (preset === 'today') {
+                const dayStr = today.toISOString().split('T')[0];
+                start = dayStr;
+                end = dayStr;
+            } else if (preset === 'week') {
+                const day = today.getDay();
+                const diff = today.getDate() - day + (day === 0 ? -6 : 1); // ISO Monday
+                const monday = new Date(today.setDate(diff));
+                const sunday = new Date(monday);
+                sunday.setDate(monday.getDate() + 6);
+                
+                start = monday.toISOString().split('T')[0];
+                end = sunday.toISOString().split('T')[0];
+            } else if (preset === 'month') {
+                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                start = firstDay.toISOString().split('T')[0];
+                end = lastDay.toISOString().split('T')[0];
+            } else if (preset === 'year') {
+                const firstDay = new Date(today.getFullYear(), 0, 1);
+                const lastDay = new Date(today.getFullYear(), 11, 31);
+                start = firstDay.toISOString().split('T')[0];
+                end = lastDay.toISOString().split('T')[0];
+            }
+
+            return { start, end };
+        }
+
+        function handlePresetDateChange() {
+            const val = document.getElementById('admin-date-preset').value;
+            if (val === 'custom') return;
+            const range = getPresetDateRange(val);
+            document.getElementById('admin-date-start').value = range.start;
+            document.getElementById('admin-date-end').value = range.end;
+            triggerAdminDataReload();
+        }
+
+        /* ----------------------------------------------------
+           INTERFACE NAVIGATION CONTROL
+           ---------------------------------------------------- */
+        function switchActiveTab(target) {
+            document.getElementById('tab-btn-therapist').className = "px-5 py-2.5 rounded-xl text-sm font-bold " + 
+                (target === 'therapist' ? 'text-neuBlue neu-btn-active' : 'text-gray-500');
+            document.getElementById('tab-btn-admin').className = "px-5 py-2.5 rounded-xl text-sm font-bold " + 
+                (target === 'admin' ? 'text-neuBlue neu-btn-active' : 'text-gray-500');
+
+            if (target === 'therapist') {
+                document.getElementById('tab-content-therapist').classList.remove('hidden');
+                document.getElementById('tab-content-admin').classList.add('hidden');
+                if (currentTherapist) loadTherapistWorkspace();
+            } else {
+                document.getElementById('tab-content-therapist').classList.add('hidden');
+                document.getElementById('tab-content-admin').classList.remove('hidden');
+                if (adminAuthorized) triggerAdminDataReload();
+            }
+        }
+
+        function prefillStaticInputs() {
+            // Login dropdown
+            const select = document.getElementById('login-therapist-select');
+            select.innerHTML = '<option value="">-- Select Member --</option>';
+            state.therapists.sort((a,b) => a.Name.localeCompare(b.Name)).forEach(t => {
+                select.innerHTML += `<option value="${t.Therapist_ID}">${t.Name}</option>`;
+            });
+
+            // Service select options in session logger
+            const sSelect = document.getElementById('form-service');
+            sSelect.innerHTML = '<option value="">-- Choose Option --</option>';
+            state.services.forEach(s => {
+                sSelect.innerHTML += `<option value="${s.Service_ID}">${s.Service_Name} ($${s.Price.toFixed(2)})</option>`;
+            });
+
+            // Focus therapist dropdown in Admin
+            const focusSel = document.getElementById('admin-focus-therapist');
+            focusSel.innerHTML = '<option value="ALL">All Active Therapists</option>';
+            state.therapists.forEach(t => {
+                focusSel.innerHTML += `<option value="${t.Therapist_ID}">${t.Name}</option>`;
+            });
+        }
+
+        /* ----------------------------------------------------
+           THERAPIST AUTHENTICATION & LOGIN
+           ---------------------------------------------------- */
+        function attemptTherapistLogin() {
+            const tid = document.getElementById('login-therapist-select').value;
+            const pin = document.getElementById('login-therapist-pin').value;
+
+            if (!tid || !pin) {
+                openCustomModal("Details Required", "Please specify your profile name and secure pin.");
+                return;
+            }
+
+            const tProfile = state.therapists.find(x => x.Therapist_ID === tid);
+            if (tProfile && tProfile.Pin === pin) {
+                currentTherapist = tProfile;
+                document.getElementById('therapist-login-view').classList.add('hidden');
+                document.getElementById('therapist-authenticated-view').classList.remove('hidden');
+                loadTherapistWorkspace();
+            } else {
+                openCustomModal("Unauthorized", "Your PIN code is incorrect. Please try again.");
+            }
+        }
+
+        function logoutTherapist() {
+            currentTherapist = null;
+            activeShift = null;
+            document.getElementById('login-therapist-pin').value = "";
+            document.getElementById('therapist-login-view').classList.remove('hidden');
+            document.getElementById('therapist-authenticated-view').classList.add('hidden');
+        }
+
+        /* ----------------------------------------------------
+           THERAPIST PORTAL & IN-DAY WORKFLOW
+           ---------------------------------------------------- */
+        function loadTherapistWorkspace() {
+            document.getElementById('display-therapist-name').innerText = `Hello, ${currentTherapist.Name}`;
+            document.getElementById('display-therapist-abn').innerText = currentTherapist.ABN || "Not Set";
+            
+            const rate = (getTherapistCommissionRate(currentTherapist.Therapist_ID) * 100).toFixed(0);
+            document.getElementById('display-commission-percent').innerText = rate;
+
+            // Load todays shift
+            const todayStr = new Date().toISOString().split('T')[0];
+            const foundShift = state.shifts.find(s => s.Therapist_ID === currentTherapist.Therapist_ID && s.Date === todayStr);
+
+            if (foundShift) {
+                activeShift = foundShift;
+                showShiftActiveLayout();
+            } else {
+                activeShift = null;
+                showShiftInactiveLayout();
+            }
+
+            setTherapistFilter('week');
+        }
+
+        function getTherapistCommissionRate(tid) {
+            const rObj = state.rates.find(x => x.Therapist_ID === tid);
+            return rObj ? parseFloat(rObj.Commission_Rate) : 0.45;
+        }
+
+        function showShiftActiveLayout() {
+            document.getElementById('clock-in-actions').classList.add('hidden');
+            document.getElementById('clock-out-actions').classList.remove('hidden');
+            document.getElementById('session-logger-box').classList.remove('opacity-50', 'pointer-events-none');
+            
+            // Build dynamic addons
+            selectedAddonsList = [];
+            renderAddonInterface();
+
+            updateShiftVisualsAndMetrics();
+        }
+
+        function showShiftInactiveLayout() {
+            document.getElementById('clock-in-actions').classList.remove('hidden');
+            document.getElementById('clock-out-actions').classList.add('hidden');
+            document.getElementById('session-logger-box').classList.add('opacity-50', 'pointer-events-none');
+            
+            // Clear lists
+            document.getElementById('therapist-sessions-table-rows').innerHTML = `
+                <tr><td colspan="7" class="py-8 text-center text-gray-400">Please clock in to start logging sessions</td></tr>
+            `;
+        }
+
+        function clockInShift() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const shiftKey = `SH_${currentTherapist.Therapist_ID}_${Date.now()}`;
+            
+            const newShift = {
+                Shift_Key: shiftKey,
+                Therapist_ID: currentTherapist.Therapist_ID,
+                Date: todayStr,
+                Start_Time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                End_Time: "",
+                Shift_Status: "Active"
+            };
+
+            state.shifts.push(newShift);
+            activeShift = newShift;
+            saveStateToStorage();
+            showShiftActiveLayout();
+            openCustomModal("Shift Started", "You are clocked in for today. Have a great shift!");
+        }
+
+        function getShiftGuarantees(tid, dateStr) {
+            const date = new Date(dateStr);
+            const isWeekend = (date.getDay() === 0 || date.getDay() === 6); // Sun = 0, Sat = 6
+            const rObj = state.rates.find(x => x.Therapist_ID === tid);
+            const weekdayG = rObj ? parseFloat(rObj.Weekday_Guarantee) : 150.00;
+            const weekendG = rObj ? parseFloat(rObj.Weekend_Guarantee) : 180.00;
+
+            return {
+                target: isWeekend ? weekendG : weekdayG,
+                isWeekend: isWeekend
+            };
+        }
+
+        function updateShiftVisualsAndMetrics() {
+            if (!activeShift) return;
+
+            const mySessions = state.sessions.filter(x => x.Shift_Key === activeShift.Shift_Key);
+            
+            let totalComm = 0;
+            let totalTips = 0;
+
+            mySessions.forEach(s => {
+                totalComm += parseFloat(s.Commission || 0);
+                totalTips += parseFloat(s.Tip_Amount || 0);
+            });
+
+            // Calculate Top Up
+            const guarantees = getShiftGuarantees(currentTherapist.Therapist_ID, activeShift.Date);
+            let topUp = 0;
+            if (totalComm < guarantees.target) {
+                topUp = guarantees.target - totalComm;
+            }
+
+            // Correct Core Formula: Payout Total = Commission + Top-Up + Tips
+            const payoutSum = totalComm + topUp + totalTips;
+
+            document.getElementById('shift-meta-date').innerText = activeShift.Date;
+            document.getElementById('shift-meta-count').innerText = mySessions.length;
+            document.getElementById('shift-meta-comm').innerText = `$${totalComm.toFixed(2)}`;
+            document.getElementById('shift-meta-topup').innerText = `$${topUp.toFixed(2)}`;
+            document.getElementById('shift-meta-tips').innerText = `$${totalTips.toFixed(2)}`;
+            document.getElementById('shift-meta-payout').innerText = `$${payoutSum.toFixed(2)}`;
+
+            renderTherapistSessionsTable(mySessions);
+        }
+
+        function renderTherapistSessionsTable(sessions) {
+            const body = document.getElementById('therapist-sessions-table-rows');
+            body.innerHTML = "";
+
+            if (sessions.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-400">No sessions registered yet today</td></tr>`;
+                return;
+            }
+
+            sessions.forEach(s => {
+                const sObj = state.services.find(x => x.Service_ID === s.Services_ID);
+                const sName = sObj ? sObj.Service_Name : s.Services_ID;
+                const adList = JSON.parse(s.AddOn_ID || "[]").map(id => {
+                    const addonObj = state.addons.find(a => a.AddOn_ID === id);
+                    return addonObj ? addonObj.Name : id;
+                }).join(', ') || '-';
+
+                body.innerHTML += `
+                    <tr class="hover:bg-gray-50 font-medium">
+                        <td class="py-3">${sName}</td>
+                        <td class="py-3 text-xs text-gray-500">${adList}</td>
+                        <td class="py-3 text-right">$${parseFloat(s.Service_Total).toFixed(2)}</td>
+                        <td class="py-3 text-center">
+                            <span class="px-2 py-0.5 bg-blue-100 text-neuBlue rounded-full text-[10px]">
+                                ${s.Payment_Type_1} ${s.Split_Payment === "true" ? `+ ${s.Payment_Type_2}` : ''}
+                            </span>
+                            ${s.Voucher_Number ? `<span class="block text-[9px] text-amber-600 mt-0.5 font-bold">Voucher: ${s.Voucher_Number}</span>` : ''}
+                        </td>
+                        <td class="py-3 text-right font-bold text-neuDark">$${parseFloat(s.Commission).toFixed(2)}</td>
+                        <td class="py-3 text-right text-emerald-600">$${parseFloat(s.Tip_Amount).toFixed(2)}</td>
+                        <td class="py-3 text-center space-x-1">
+                            <button onclick="editTreatmentSession('${s.Session_ID}')" class="text-[10px] text-neuBlue hover:underline">Edit</button>
+                            <span class="text-gray-300">|</span>
+                            <button onclick="confirmDeleteTreatmentSession('${s.Session_ID}')" class="text-[10px] text-rose-600 hover:underline">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function clockOutShift() {
+            openCustomModal(
+                "Confirm Clock Out", 
+                "Are you sure you want to end your shift for today? No further edits can be made directly.", 
+                true, 
+                () => {
+                    activeShift.End_Time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    activeShift.Shift_Status = "Closed";
+                    
+                    saveStateToStorage();
+                    loadTherapistWorkspace();
+                    openCustomModal("Shift Finished", "You have clocked out. See you next time!");
+                }
+            );
+        }
+
+        /* ----------------------------------------------------
+           DYNAMIC MULTIPLE ADD-ON MODULE
+           ---------------------------------------------------- */
+        function renderAddonInterface() {
+            const container = document.getElementById('addon-list-container');
+            container.innerHTML = "";
+
+            if (selectedAddonsList.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 font-semibold italic">No add-ons selected</p>`;
+                return;
+            }
+
+            selectedAddonsList.forEach((adId, index) => {
+                const addonObj = state.addons.find(a => a.AddOn_ID === adId);
+                const name = addonObj ? addonObj.Name : adId;
+
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white shadow-sm">
+                        <select onchange="updateAddonValue(${index}, this.value)" class="bg-transparent text-xs font-semibold text-neuDark focus:outline-none">
+                            ${state.addons.map(a => `<option value="${a.AddOn_ID}" ${a.AddOn_ID === adId ? 'selected' : ''}>${a.Name} ($${a.Price.toFixed(2)})</option>`).join('')}
+                        </select>
+                        <button type="button" onclick="removeAddonSelector(${index})" class="text-rose-500 font-bold text-xs px-2 hover:text-rose-700">✕</button>
+                    </div>
+                `;
+            });
+        }
+
+        function addNewAddonSelector() {
+            if (selectedAddonsList.length >= 5) {
+                openCustomModal("Limit Reached", "You can only specify up to 5 add-ons per session.");
+                return;
+            }
+            // Add first addon by default
+            selectedAddonsList.push(state.addons[0].AddOn_ID);
+            renderAddonInterface();
+            calculateFormPricesLive();
+        }
+
+        function updateAddonValue(index, val) {
+            selectedAddonsList[index] = val;
+            calculateFormPricesLive();
+        }
+
+        function removeAddonSelector(index) {
+            selectedAddonsList.splice(index, 1);
+            renderAddonInterface();
+            calculateFormPricesLive();
+        }
+
+        /* ----------------------------------------------------
+           SESSION LOGGING FLOW & LIVE CALCULATIONS
+           ---------------------------------------------------- */
+        function calculateFormPricesLive() {
+            const sId = document.getElementById('form-service').value;
+            if (!sId) {
+                document.getElementById('live-est-total').innerText = "$0.00";
+                document.getElementById('live-est-share').innerText = "$0.00";
+                return;
+            }
+
+            const sObj = state.services.find(x => x.Service_ID === sId);
+            const sPrice = sObj ? sObj.Price : 0;
+
+            let addonsSum = 0;
+            selectedAddonsList.forEach(id => {
+                const adObj = state.addons.find(a => a.AddOn_ID === id);
+                if (adObj) addonsSum += adObj.Price;
+            });
+
+            const grandTotal = sPrice + addonsSum;
+            const myShare = grandTotal * getTherapistCommissionRate(currentTherapist.Therapist_ID);
+
+            document.getElementById('live-est-total').innerText = `$${grandTotal.toFixed(2)}`;
+            document.getElementById('live-est-share').innerText = `$${myShare.toFixed(2)}`;
+        }
+
+        function handlePaymentType1Selection() {
+            const val = document.getElementById('form-payment-1').value;
+            const voucherBox = document.getElementById('voucher-field-box');
+            
+            if (val === "Voucher") {
+                voucherBox.classList.remove('hidden');
+                document.getElementById('form-voucher-num').setAttribute('required', 'required');
+            } else {
+                voucherBox.classList.add('hidden');
+                document.getElementById('form-voucher-num').removeAttribute('required');
+            }
+        }
+
+        function toggleSplitInputs() {
+            const isChecked = document.getElementById('form-split-check').checked;
+            document.getElementById('split-inputs').className = isChecked ? "grid grid-cols-2 gap-2 mt-2" : "hidden";
+        }
+
+        function handleSessionLogging(event) {
+            event.preventDefault();
+
+            if (!activeShift) {
+                openCustomModal("Inactive", "Please clock in first to initiate session logging.");
+                return;
+            }
+
+            const serviceId = document.getElementById('form-service').value;
+            const p1 = document.getElementById('form-payment-1').value;
+            const voucherNum = document.getElementById('form-voucher-num').value;
+            const isSplit = document.getElementById('form-split-check').checked;
+            const p2 = isSplit ? document.getElementById('form-payment-2').value : "";
+            const amt2Str = isSplit ? document.getElementById('form-amount-2').value : "0";
+            const tipAmtStr = document.getElementById('form-tip-amount').value || "0";
+            const tipType = document.getElementById('form-tip-type').value;
+
+            // Sanitize and validate inputs (State Requirements)
+            const amt2 = parseFloat(amt2Str.replace(/[^0-9.]/g, '')) || 0;
+            const tipAmt = parseFloat(tipAmtStr.replace(/[^0-9.]/g, '')) || 0;
+
+            const sObj = state.services.find(x => x.Service_ID === serviceId);
+            const basePrice = sObj ? sObj.Price : 0;
+
+            let addonsSum = 0;
+            selectedAddonsList.forEach(id => {
+                const adObj = state.addons.find(a => a.AddOn_ID === id);
+                if (adObj) addonsSum += adObj.Price;
+            });
+
+            const grandTotal = basePrice + addonsSum;
+
+            // Split Calculations
+            let amt1 = grandTotal;
+            if (isSplit) {
+                if (amt2 > grandTotal) {
+                    openCustomModal("Input Error", "Split payment portion cannot be larger than treatment cost!");
+                    return;
+                }
+                amt1 = grandTotal - amt2;
+            }
+
+            // Voucher Validation
+            if (p1 === "Voucher" && !voucherNum) {
+                openCustomModal("Validation Required", "Voucher serial code must be entered.");
+                return;
+            }
+
+            const commRate = getTherapistCommissionRate(currentTherapist.Therapist_ID);
+            const calculatedCommission = grandTotal * commRate;
+
+            const sessionId = `SESS_${Date.now()}`;
+            const newSession = {
+                Session_ID: sessionId,
+                Shift_Key: activeShift.Shift_Key,
+                Therapist_ID: currentTherapist.Therapist_ID,
+                Date: activeShift.Date,
+                Services_ID: serviceId,
+                Service_Price: `$${basePrice.toFixed(2)}`,
+                AddOn_ID: JSON.stringify(selectedAddonsList),
+                AddOn_Price: `$${addonsSum.toFixed(2)}`,
+                Service_Total: grandTotal,
+                Payment_Type_1: p1,
+                Amount_Paid_1: `$${amt1.toFixed(2)}`,
+                Split_Payment: isSplit ? "true" : "false",
+                Payment_Type_2: p2,
+                Amount_Paid_2: isSplit ? `$${amt2.toFixed(2)}` : "",
+                Commission: calculatedCommission,
+                Tip_Amount: tipAmt,
+                Tip_Type: tipType,
+                Voucher_Number: p1 === "Voucher" ? voucherNum : "",
+                Note: ""
+            };
+
+            state.sessions.push(newSession);
+            saveStateToStorage();
+
+            // Reset UI Form
+            document.getElementById('session-log-form').reset();
+            document.getElementById('form-split-check').checked = false;
+            toggleSplitInputs();
+            handlePaymentType1Selection();
+            selectedAddonsList = [];
+            renderAddonInterface();
+            calculateFormPricesLive();
+
+            updateShiftVisualsAndMetrics();
+            setTherapistFilter(therapistFilterType); // Refresh dashboard graphs
+            openCustomModal("Success", "Treatment session logged successfully.");
+        }
+
+        /* ----------------------------------------------------
+           THERAPIST EDIT & DELETE ACTIONS (CUSTOM OVERLAYS)
+           ---------------------------------------------------- */
+        function confirmDeleteTreatmentSession(id) {
+            openCustomModal(
+                "Delete Session?", 
+                "Are you sure you want to permanently delete this logged treatment?", 
+                true, 
+                () => {
+                    state.sessions = state.sessions.filter(x => x.Session_ID !== id);
+                    saveStateToStorage();
+                    updateShiftVisualsAndMetrics();
+                    setTherapistFilter(therapistFilterType);
+                    openCustomModal("Removed", "Treatment session deleted.");
+                }
+            );
+        }
+
+        function editTreatmentSession(id) {
+            const sess = state.sessions.find(x => x.Session_ID === id);
+            if (!sess) return;
+
+            // Pre-fill form values to edit
+            document.getElementById('form-service').value = sess.Services_ID;
+            document.getElementById('form-payment-1').value = sess.Payment_Type_1;
+            handlePaymentType1Selection();
+            if (sess.Payment_Type_1 === "Voucher") {
+                document.getElementById('form-voucher-num').value = sess.Voucher_Number || "";
+            }
+
+            const isSplit = sess.Split_Payment === "true";
+            document.getElementById('form-split-check').checked = isSplit;
+            toggleSplitInputs();
+            if (isSplit) {
+                document.getElementById('form-payment-2').value = sess.Payment_Type_2;
+                document.getElementById('form-amount-2').value = sess.Amount_Paid_2.replace('$', '');
+            }
+
+            document.getElementById('form-tip-amount').value = sess.Tip_Amount;
+            document.getElementById('form-tip-type').value = sess.Tip_Type || "Cash";
+
+            selectedAddonsList = JSON.parse(sess.AddOn_ID || "[]");
+            renderAddonInterface();
+            calculateFormPricesLive();
+
+            // Delete original first
+            state.sessions = state.sessions.filter(x => x.Session_ID !== id);
+            saveStateToStorage();
+            updateShiftVisualsAndMetrics();
+        }
+
+        /* ----------------------------------------------------
+           PROFILE SETTINGS & TAX STATEMENT INTEGRATIONS
+           ---------------------------------------------------- */
+        function openProfileSettingsModal() {
+            document.getElementById('prof-fullname').value = currentTherapist.Name;
+            document.getElementById('prof-abn').value = currentTherapist.ABN || "";
+            document.getElementById('prof-mobile').value = currentTherapist.Mobile || "";
+            document.getElementById('prof-email').value = currentTherapist.Email || "";
+            document.getElementById('prof-bank').value = currentTherapist.Bank_Name || "";
+            document.getElementById('prof-holder').value = currentTherapist.Account_Name || "";
+            document.getElementById('prof-bsb').value = currentTherapist.BSB || "";
+            document.getElementById('prof-acc').value = currentTherapist.Account_Number || "";
+
+            document.getElementById('modal-profile-settings').classList.remove('hidden');
+            document.getElementById('modal-profile-settings').classList.add('flex');
+        }
+
+        function closeProfileSettingsModal() {
+            document.getElementById('modal-profile-settings').classList.add('hidden');
+            document.getElementById('modal-profile-settings').classList.remove('flex');
+        }
+
+        function saveProfileSettings() {
+            currentTherapist.Name = document.getElementById('prof-fullname').value;
+            currentTherapist.ABN = document.getElementById('prof-abn').value;
+            currentTherapist.Mobile = document.getElementById('prof-mobile').value;
+            currentTherapist.Email = document.getElementById('prof-email').value;
+            currentTherapist.Bank_Name = document.getElementById('prof-bank').value;
+            currentTherapist.Account_Name = document.getElementById('prof-holder').value;
+            currentTherapist.BSB = document.getElementById('prof-bsb').value;
+            currentTherapist.Account_Number = document.getElementById('prof-acc').value;
+
+            // Encrypted-at-rest simulation logic
+            const encryptedKey = btoa(JSON.stringify(currentTherapist)); // Simple base64 mock encryption 
+            
+            // Save state
+            const index = state.therapists.findIndex(x => x.Therapist_ID === currentTherapist.Therapist_ID);
+            if (index !== -1) {
+                state.therapists[index] = currentTherapist;
+            }
+            saveStateToStorage();
+            closeProfileSettingsModal();
+            loadTherapistWorkspace();
+            openCustomModal("Saved", "Your profile details have been saved and encrypted.");
+        }
+
+        /* ----------------------------------------------------
+           THERAPIST ANALYTICS DASHBOARD CHART ENGINE
+           ---------------------------------------------------- */
+        function setTherapistFilter(type) {
+            therapistFilterType = type;
+            ['today', 'week', 'month'].forEach(f => {
+                document.getElementById(`t-filter-${f}`).className = (f === type) ? 'px-3 py-1.5 rounded-lg neu-btn-active text-neuBlue' : 'px-3 py-1.5 rounded-lg';
+            });
+
+            renderTherapistPersonalAnalytics();
+        }
+
+        function renderTherapistPersonalAnalytics() {
+            if (!currentTherapist) return;
+
+            const range = getPresetDateRange(therapistFilterType);
+            const myShifts = state.shifts.filter(x => x.Therapist_ID === currentTherapist.Therapist_ID && x.Date >= range.start && x.Date <= range.end);
+            
+            let totalSales = 0;
+            let totalComm = 0;
+            let totalTopups = 0;
+            let totalTips = 0;
+
+            const dailyReportMap = {};
+
+            // Initialize daily report map
+            myShifts.forEach(sh => {
+                dailyReportMap[sh.Date] = { sales: 0, comm: 0, topup: 0, tips: 0, payout: 0 };
+            });
+
+            // Gather values
+            const sessionScope = state.sessions.filter(x => x.Therapist_ID === currentTherapist.Therapist_ID && x.Date >= range.start && x.Date <= range.end);
+            sessionScope.forEach(s => {
+                totalSales += s.Service_Total;
+                totalComm += s.Commission;
+                totalTips += s.Tip_Amount;
+
+                if (dailyReportMap[s.Date]) {
+                    dailyReportMap[s.Date].sales += s.Service_Total;
+                    dailyReportMap[s.Date].comm += s.Commission;
+                    dailyReportMap[s.Date].tips += s.Tip_Amount;
+                }
+            });
+
+            // Add Guarantees to complete payout calculations
+            myShifts.forEach(sh => {
+                const stats = dailyReportMap[sh.Date] || { sales: 0, comm: 0, topup: 0, tips: 0, payout: 0 };
+                const targets = getShiftGuarantees(currentTherapist.Therapist_ID, sh.Date);
+                
+                if (stats.comm < targets.target) {
+                    stats.topup = targets.target - stats.comm;
+                }
+                stats.payout = stats.comm + stats.topup + stats.tips;
+                totalTopups += stats.topup;
+                
+                dailyReportMap[sh.Date] = stats;
+            });
+
+            // Display KPI Numbers
+            document.getElementById('t-stat-sales').innerText = `$${totalSales.toFixed(2)}`;
+            document.getElementById('t-stat-comm').innerText = `$${totalComm.toFixed(2)}`;
+            document.getElementById('t-stat-topups').innerText = `$${totalTopups.toFixed(2)}`;
+            // Correct core standard layout formula: Commission + Top-Up + Tips
+            const overallPayout = totalComm + totalTopups + totalTips;
+            document.getElementById('t-stat-payout').innerText = `$${overallPayout.toFixed(2)}`;
+
+            // Build dynamic Chart.js visualization
+            const labels = Object.keys(dailyReportMap).sort();
+            const datasetsComm = labels.map(l => dailyReportMap[l].comm);
+            const datasetsTopup = labels.map(l => dailyReportMap[l].topup);
+            const datasetsTips = labels.map(l => dailyReportMap[l].tips);
+
+            if (tEarningChartRef) tEarningChartRef.destroy();
+
+            const ctx = document.getElementById('therapistEarningChart').getContext('2d');
+            tEarningChartRef = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.map(d => d.slice(5)), // display mm-dd
+                    datasets: [
+                        { label: 'Commission', data: datasetsComm, backgroundColor: '#4A90E2', borderRadius: 4 },
+                        { label: 'Top-Ups', data: datasetsTopup, backgroundColor: '#85B7E2', borderRadius: 4 },
+                        { label: 'Tips', data: datasetsTips, backgroundColor: '#2ECC71', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, grid: { borderDash: [2,2] } }
+                    }
+                }
+            });
+        }
+
+        /* ----------------------------------------------------
+           AUSTRALIAN CONTRACTOR TAX INVOICE COMPILER
+           ---------------------------------------------------- */
+        function triggerInvoiceSubmission() {
+            // Generates print statement matching standard Australian tax regulations (NO GST)
+            const range = getPresetDateRange('week'); // defaults to current weekly payment run
+            const shifts = state.shifts.filter(x => x.Therapist_ID === currentTherapist.Therapist_ID && x.Date >= range.start && x.Date <= range.end);
+
+            if (shifts.length === 0) {
+                openCustomModal("Invoice Blank", "No shift records registered this week. Log sessions first!");
+                return;
+            }
+
+            let summaryHtml = "";
+            let grossCommission = 0;
+            let grossTopup = 0;
+            let grossTips = 0;
+
+            shifts.forEach(s => {
+                const sessions = state.sessions.filter(x => x.Shift_Key === s.Shift_Key);
+                let sc = 0;
+                let stips = 0;
+                sessions.forEach(se => {
+                    sc += se.Commission;
+                    stips += se.Tip_Amount;
+                });
+
+                const targets = getShiftGuarantees(currentTherapist.Therapist_ID, s.Date);
+                const topup = (sc < targets.target) ? (targets.target - sc) : 0;
+                const total = sc + topup + stips;
+
+                grossCommission += sc;
+                grossTopup += topup;
+                grossTips += stips;
+
+                summaryHtml += `
+                    <tr class="border-b border-gray-100">
+                        <td class="py-2.5 text-xs text-gray-700">${s.Date}</td>
+                        <td class="py-2.5 text-xs text-center text-gray-700">${sessions.length}</td>
+                        <td class="py-2.5 text-xs text-right text-gray-700">$${sc.toFixed(2)}</td>
+                        <td class="py-2.5 text-xs text-right text-blue-600">$${topup.toFixed(2)}</td>
+                        <td class="py-2.5 text-xs text-right text-emerald-600">$${stips.toFixed(2)}</td>
+                        <td class="py-2.5 text-xs text-right font-bold text-gray-900">$${total.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            const invoiceTotal = grossCommission + grossTopup + grossTips;
+
+            const printOutlet = document.getElementById('invoice-compile-target');
+            printOutlet.innerHTML = `
+                <div class="border-b-4 border-gray-900 pb-6 flex justify-between items-start">
+                    <div>
+                        <h1 class="text-2xl font-black tracking-tight text-gray-900">SUBMITTED TAX INVOICE</h1>
+                        <span class="text-xs font-bold text-red-600 block mt-1 uppercase">Note: Australian Contractor Sub-Contract - No GST Charged</span>
+                    </div>
+                    <div class="text-right text-xs text-gray-600">
+                        <p class="font-extrabold text-gray-900">ABN: ${currentTherapist.ABN || "NOT DECLARED"}</p>
+                        <p class="mt-1">Date: ${new Date().toLocaleDateString()}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-8 my-6 text-xs">
+                    <div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">From: (Contractor)</span>
+                        <p class="text-sm font-bold text-gray-900 mt-1">${currentTherapist.Name}</p>
+                        <p class="mt-1">Email: ${currentTherapist.Email || "-"}</p>
+                        <p>Phone: ${currentTherapist.Mobile || "-"}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">To: (Company client)</span>
+                        <p class="text-sm font-bold text-gray-900 mt-1">Woollahra Massage</p>
+                        <p class="mt-1">32 Queen Street, Woollahra NSW 2025</p>
+                        <p>ABN: 60 647 501 022</p>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-gray-50 border border-gray-100 flex justify-between items-center my-6">
+                    <div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase block">Statement Payout Total</span>
+                        <span class="text-xl font-black text-gray-900">$${invoiceTotal.toFixed(2)}</span>
+                    </div>
+                    <div class="text-right text-xs">
+                        <p class="font-bold text-gray-800">Bank Transfer Details</p>
+                        <p class="font-mono text-gray-600">BSB: ${currentTherapist.BSB || "-"} | ACC: ${currentTherapist.Account_Number || "-"}</p>
+                    </div>
+                </div>
+
+                <div class="my-6">
+                    <h3 class="text-xs font-bold text-gray-900 mb-2 uppercase tracking-wider">Weekly Assignment breakdown</h3>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-400 text-gray-500 text-[10px] font-bold uppercase">
+                                <th class="py-2">Date</th>
+                                <th class="py-2 text-center">Sessions Logged</th>
+                                <th class="py-2 text-right">Commissions</th>
+                                <th class="py-2 text-right">Top-up Costs</th>
+                                <th class="py-2 text-right">Allocated Tips</th>
+                                <th class="py-2 text-right">Net Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${summaryHtml}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="border-t border-gray-200 pt-4 flex justify-end">
+                    <div class="w-72 space-y-2 text-xs">
+                        <div class="flex justify-between text-gray-500">
+                            <span>Services base Share:</span>
+                            <span>$${grossCommission.toFixed(2)}</span>
+                        </div>
+                        <div class="flex justify-between text-gray-500">
+                            <span>Aggregate Top-ups:</span>
+                            <span>$${grossTopup.toFixed(2)}</span>
+                        </div>
+                        <div class="flex justify-between text-gray-500">
+                            <span>Tips registered:</span>
+                            <span>$${grossTips.toFixed(2)}</span>
+                        </div>
+                        <hr class="border-gray-200">
+                        <div class="flex justify-between text-base font-black text-gray-900">
+                            <span>TOTAL PAID AMOUNT:</span>
+                            <span>$${invoiceTotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-8 text-center text-[10px] text-gray-400">
+                    <p>GST is not charged on sub-contractor allocations in compliance with ATO regulations.</p>
+                </div>
+            `;
+
+            // Open print modal interface
+            window.print();
+        }
+
+        /* ----------------------------------------------------
+           ADMIN AUTHORIZATION & PANEL LOGIC
+           ---------------------------------------------------- */
+        function attemptAdminAccess() {
+            const key = document.getElementById('admin-pass-key').value;
+            if (key === "admin" || key === "1111") {
+                adminAuthorized = true;
+                document.getElementById('admin-auth-view').classList.add('hidden');
+                document.getElementById('admin-portal-view').classList.remove('hidden');
+                triggerAdminDataReload();
+            } else {
+                openCustomModal("Unauthorized", "Passcode is incorrect. Admin console remains locked.");
+            }
+        }
+
+        function lockAdminWorkspace() {
+            adminAuthorized = false;
+            document.getElementById('admin-pass-key').value = "";
+            document.getElementById('admin-auth-view').classList.remove('hidden');
+            document.getElementById('admin-portal-view').classList.add('hidden');
+        }
+
+        function triggerAdminDataReload() {
+            if (!adminAuthorized) return;
+
+            const tId = document.getElementById('admin-focus-therapist').value;
+            const start = document.getElementById('admin-date-start').value;
+            const end = document.getElementById('admin-date-end').value;
+
+            // Load shifts matching parameters
+            let shifts = state.shifts;
+            if (tId !== "ALL") shifts = shifts.filter(x => x.Therapist_ID === tId);
+            if (start) shifts = shifts.filter(x => x.Date >= start);
+            if (end) shifts = shifts.filter(x => x.Date <= end);
+
+            let sSales = 0;
+            let sComm = 0;
+            let sTopups = 0;
+            let sTips = 0;
+
+            const table = document.getElementById('admin-shifts-table-rows');
+            table.innerHTML = "";
+
+            if (shifts.length === 0) {
+                table.innerHTML = `<tr><td colspan="9" class="py-8 text-center text-gray-400">No shifts match selection criteria</td></tr>`;
+            }
+
+            const therapistGrouping = {}; // for visual metrics
+            const paymentTypeCounts = {}; // for preferences chart
+
+            shifts.sort((a,b) => b.Date.localeCompare(a.Date)).forEach(s => {
+                const tName = (state.therapists.find(x => x.Therapist_ID === s.Therapist_ID) || {}).Name || s.Therapist_ID;
+                const sessions = state.sessions.filter(x => x.Shift_Key === s.Shift_Key);
+                
+                let sCommSum = 0;
+                let sTipsSum = 0;
+                let sSalesSum = 0;
+
+                sessions.forEach(se => {
+                    sCommSum += parseFloat(se.Commission);
+                    sTipsSum += parseFloat(se.Tip_Amount);
+                    sSalesSum += parseFloat(se.Service_Total);
+
+                    // Reconcile pay types
+                    paymentTypeCounts[se.Payment_Type_1] = (paymentTypeCounts[se.Payment_Type_1] || 0) + 1;
+                    if (se.Split_Payment === "true") {
+                        paymentTypeCounts[se.Payment_Type_2] = (paymentTypeCounts[se.Payment_Type_2] || 0) + 1;
+                    }
+                });
+
+                const targets = getShiftGuarantees(s.Therapist_ID, s.Date);
+                const topup = (sCommSum < targets.target) ? (targets.target - sCommSum) : 0;
+                const payout = sCommSum + topup + sTipsSum;
+
+                sSales += sSalesSum;
+                sComm += sCommSum;
+                sTopups += topup;
+                sTips += sTipsSum;
+
+                // Group for visualizations
+                therapistGrouping[tName] = (therapistGrouping[tName] || 0) + sSalesSum;
+
+                table.innerHTML += `
+                    <tr class="hover:bg-gray-50 font-medium border-b border-gray-100">
+                        <td class="py-3 font-mono">${s.Date}</td>
+                        <td class="py-3 font-bold text-neuDark">${tName}</td>
+                        <td class="py-3 text-gray-500">${s.Start_Time || '-'}</td>
+                        <td class="py-3 text-gray-500">${s.End_Time || '-'}</td>
+                        <td class="py-3 text-right">$${sCommSum.toFixed(2)}</td>
+                        <td class="py-3 text-right text-blue-600">$${topup.toFixed(2)}</td>
+                        <td class="py-3 text-right text-emerald-600">$${sTipsSum.toFixed(2)}</td>
+                        <td class="py-3 text-right font-bold text-neuDark">$${payout.toFixed(2)}</td>
+                        <td class="py-3 text-center">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${s.Shift_Status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-800'}">
+                                ${s.Shift_Status}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            // Update stats
+            document.getElementById('admin-stat-sales').innerText = `$${sSales.toFixed(2)}`;
+            document.getElementById('admin-stat-comm').innerText = `$${sComm.toFixed(2)}`;
+            document.getElementById('admin-stat-topups').innerText = `$${sTopups.toFixed(2)}`;
+            document.getElementById('admin-stat-tips').innerText = `$${sTips.toFixed(2)}`;
+            document.getElementById('admin-stat-payout').innerText = `$${(sComm + sTopups + sTips).toFixed(2)}`;
+
+            renderVoucherReportingSuite(start, end);
+            renderAdminAnalyticsCharts(therapistGrouping, paymentTypeCounts, sSales, sComm, sTopups, sTips);
+        }
+
+        /* ----------------------------------------------------
+           ADMIN ANALYTICS CHARTS (CHART.JS)
+           ---------------------------------------------------- */
+        function renderAdminAnalyticsCharts(tGroup, pCounts, gross, comm, topups, tips) {
+            // Chart 1: Revenue vs Commission Distribution
+            if (admRevenueChartRef) admRevenueChartRef.destroy();
+            const ctx1 = document.getElementById('adminRevenueChart').getContext('2d');
+            admRevenueChartRef = new Chart(ctx1, {
+                type: 'pie',
+                data: {
+                    labels: ['Gross Retained Profit', 'Contractor Commissions', 'Minimum Top-ups', 'Tips Collected'],
+                    datasets: [{
+                        data: [Math.max(0, gross - comm - topups), comm, topups, tips],
+                        backgroundColor: ['#2D3748', '#4A90E2', '#85B7E2', '#2ECC71'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Quicksand', size: 10 } } } }
+                }
+            });
+
+            // Chart 2: Payment Type Counts
+            if (admPaymentChartRef) admPaymentChartRef.destroy();
+            const ctx2 = document.getElementById('adminPaymentChart').getContext('2d');
+            
+            const labels = Object.keys(pCounts);
+            const data = Object.values(pCounts);
+
+            admPaymentChartRef = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Transactions Count',
+                        data: data,
+                        backgroundColor: '#4A90E2',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { ticks: { precision: 0 } }
+                    }
+                }
+            });
+        }
+
+        /* ----------------------------------------------------
+           VOUCHER REPORTING MODULE & REGISTER
+           ---------------------------------------------------- */
+        function renderVoucherReportingSuite(start, end) {
+            let voucherSessions = state.sessions.filter(x => x.Payment_Type_1 === "Voucher" || x.Payment_Type_2 === "Voucher");
+            if (start) voucherSessions = voucherSessions.filter(x => x.Date >= start);
+            if (end) voucherSessions = voucherSessions.filter(x => x.Date <= end);
+
+            let grossVoucherRevenue = 0;
+            const table = document.getElementById('admin-vouchers-table-rows');
+            table.innerHTML = "";
+
+            if (voucherSessions.length === 0) {
+                table.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-400">No voucher transactions recorded in current filters</td></tr>`;
+                document.getElementById('voucher-audit-count').innerText = 0;
+                document.getElementById('voucher-audit-volume').innerText = "$0.00";
+                return;
+            }
+
+            voucherSessions.forEach(vs => {
+                grossVoucherRevenue += vs.Service_Total;
+                const tName = (state.therapists.find(x => x.Therapist_ID === vs.Therapist_ID) || {}).Name || vs.Therapist_ID;
+                const serial = vs.Voucher_Number || "N/A";
+
+                table.innerHTML += `
+                    <tr class="hover:bg-gray-50 border-b border-gray-100 font-medium">
+                        <td class="py-2">${vs.Date}</td>
+                        <td class="py-2 font-bold">${tName}</td>
+                        <td class="py-2 font-mono text-amber-600">${serial}</td>
+                        <td class="py-2 text-right">$${vs.Service_Total.toFixed(2)}</td>
+                        <td class="py-2 text-right">$${parseFloat(vs.Commission).toFixed(2)}</td>
+                        <td class="py-2 text-right">$${parseFloat(vs.Tip_Amount).toFixed(2)}</td>
+                        <td class="py-2 text-center text-gray-500 font-bold uppercase text-[9px]">Verified Payout</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('voucher-audit-count').innerText = voucherSessions.length;
+            document.getElementById('voucher-audit-volume').innerText = `$${grossVoucherRevenue.toFixed(2)}`;
+            document.getElementById('voucher-outstanding-count').innerText = "0"; // Placeholder
+        }
+
+        /* ----------------------------------------------------
+           ADMIN CRUD FOR ROSTERS & PRODUCTS
+           ---------------------------------------------------- */
+        function openTherapistManagerModal() {
+            renderAdminTherapistsList();
+            document.getElementById('modal-therapist-manager').classList.remove('hidden');
+            document.getElementById('modal-therapist-manager').classList.add('flex');
+        }
+
+        function closeTherapistManagerModal() {
+            document.getElementById('modal-therapist-manager').classList.add('hidden');
+            document.getElementById('modal-therapist-manager').classList.remove('flex');
+        }
+
+        function renderAdminTherapistsList() {
+            const list = document.getElementById('admin-therapists-mini-list');
+            list.innerHTML = "";
+            state.therapists.forEach(t => {
+                const rObj = state.rates.find(x => x.Therapist_ID === t.Therapist_ID) || { Commission_Rate: 0.45 };
+                list.innerHTML += `
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white shadow-sm text-xs">
+                        <span class="font-bold text-gray-800">${t.Name} (PIN: ${t.Pin}) <span class="text-blue-500">${(rObj.Commission_Rate * 100).toFixed(0)}%</span></span>
+                        <button onclick="removeTherapistProfile('${t.Therapist_ID}')" class="text-rose-600 hover:underline">Remove</button>
+                    </div>
+                `;
+            });
+        }
+
+        function createNewTherapistProfile() {
+            const name = document.getElementById('add-t-name').value;
+            const pin = document.getElementById('add-t-pin').value;
+            const abn = document.getElementById('add-t-abn').value;
+            const email = document.getElementById('add-t-email').value;
+            const rate = parseFloat(document.getElementById('add-t-rate').value || "0.45");
+
+            if (!name || !pin) {
+                openCustomModal("Error", "Required fields: Name, Pin");
+                return;
+            }
+
+            const id = `WM_${Date.now()}`;
+            const newT = { Therapist_ID: id, Name: name.toUpperCase(), Pin: pin, ABN: abn, Email: email };
+            const newR = { Therapist_Rate_ID: `R_${Date.now()}`, Therapist_ID: id, Weekday_Guarantee: 150.00, Weekend_Guarantee: 180.00, Commission_Rate: rate };
+
+            state.therapists.push(newT);
+            state.rates.push(newR);
+            saveStateToStorage();
+            prefillStaticInputs();
+            renderAdminTherapistsList();
+
+            document.getElementById('add-t-name').value = "";
+            document.getElementById('add-t-pin').value = "";
+            document.getElementById('add-t-abn').value = "";
+            document.getElementById('add-t-email').value = "";
+            document.getElementById('add-t-rate').value = "";
+            openCustomModal("Success", "Contractor record generated");
+        }
+
+        function removeTherapistProfile(id) {
+            openCustomModal(
+                "Remove Profile?", 
+                "Are you sure you want to remove this therapist profile?", 
+                true, 
+                () => {
+                    state.therapists = state.therapists.filter(x => x.Therapist_ID !== id);
+                    state.rates = state.rates.filter(x => x.Therapist_ID !== id);
+                    saveStateToStorage();
+                    prefillStaticInputs();
+                    renderAdminTherapistsList();
+                    openCustomModal("Removed", "Profile deleted.");
+                }
+            );
+        }
+
+        function openServiceManagerModal() {
+            renderAdminServicesList();
+            document.getElementById('modal-service-manager').classList.remove('hidden');
+            document.getElementById('modal-service-manager').classList.add('flex');
+        }
+
+        function closeServiceManagerModal() {
+            document.getElementById('modal-service-manager').classList.add('hidden');
+            document.getElementById('modal-service-manager').classList.remove('flex');
+        }
+
+        function renderAdminServicesList() {
+            const list = document.getElementById('admin-services-mini-list');
+            list.innerHTML = "";
+            state.services.forEach(s => {
+                list.innerHTML += `
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white shadow-sm text-xs">
+                        <span class="font-bold text-gray-800">${s.Service_Name} ($${s.Price.toFixed(2)})</span>
+                        <button onclick="removeServiceOption('${s.Service_ID}')" class="text-rose-600 hover:underline">Remove</button>
+                    </div>
+                `;
+            });
+        }
+
+        function createNewServiceOption() {
+            const id = document.getElementById('add-s-id').value;
+            const name = document.getElementById('add-s-name').value;
+            const price = parseFloat(document.getElementById('add-s-price').value || "0");
+
+            if (!id || !name || !price) {
+                openCustomModal("Error", "Required fields missing.");
+                return;
+            }
+
+            const newS = { Service_ID: id, Service_Name: name, Price: price };
+            state.services.push(newS);
+            saveStateToStorage();
+            prefillStaticInputs();
+            renderAdminServicesList();
+
+            document.getElementById('add-s-id').value = "";
+            document.getElementById('add-s-name').value = "";
+            document.getElementById('add-s-price').value = "";
+            openCustomModal("Success", "Service catalogue updated.");
+        }
+
+        function removeServiceOption(id) {
+            openCustomModal(
+                "Remove Option?", 
+                "Are you sure you want to delete this treatment service option?", 
+                true, 
+                () => {
+                    state.services = state.services.filter(x => x.Service_ID !== id);
+                    saveStateToStorage();
+                    prefillStaticInputs();
+                    renderAdminServicesList();
+                    openCustomModal("Removed", "Service option deleted.");
+                }
+            );
+        }
+
+        /* ----------------------------------------------------
+           EXPORT ACTIONS (CSV DOWNLOADS)
+           ---------------------------------------------------- */
+        function exportAdminShiftsToCSV() {
+            let csv = "Date,Staff Name,Commission,TopUp,Tips,Payout Total,Status\n";
+            state.shifts.forEach(s => {
+                const tName = (state.therapists.find(x => x.Therapist_ID === s.Therapist_ID) || {}).Name || s.Therapist_ID;
+                const sessions = state.sessions.filter(x => x.Shift_Key === s.Shift_Key);
+                let sc = 0, stips = 0;
+                sessions.forEach(se => { sc += se.Commission; stips += se.Tip_Amount; });
+                const targets = getShiftGuarantees(s.Therapist_ID, s.Date);
+                const topup = (sc < targets.target) ? (targets.target - sc) : 0;
+                const total = sc + topup + stips;
+
+                csv += `${s.Date},${tName},${sc.toFixed(2)},${topup.toFixed(2)},${stips.toFixed(2)},${total.toFixed(2)},${s.Shift_Status}\n`;
+            });
+
+            triggerCSVBlobDownload(csv, "woollahra_shifts_export.csv");
+        }
+
+        function exportAdminVouchersToCSV() {
+            let csv = "Date,Staff Name,Voucher Code,Service Total,Commission Share,Tip Amount\n";
+            state.sessions.filter(x => x.Payment_Type_1 === "Voucher" || x.Payment_Type_2 === "Voucher").forEach(vs => {
+                const tName = (state.therapists.find(x => x.Therapist_ID === vs.Therapist_ID) || {}).Name || vs.Therapist_ID;
+                csv += `${vs.Date},${tName},${vs.Voucher_Number || "N/A"},${vs.Service_Total.toFixed(2)},${vs.Commission.toFixed(2)},${vs.Tip_Amount.toFixed(2)}\n`;
+            });
+
+            triggerCSVBlobDownload(csv, "woollahra_vouchers_export.csv");
+        }
+
+        function triggerCSVBlobDownload(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+    </script>
+</body>
+</html>
